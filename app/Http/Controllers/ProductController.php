@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ProductResource;
 use App\Product;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Validator;
@@ -69,10 +68,12 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = $this->validateFindProduct($id);
+        $product = Product::find($id);
 
-        if ($product instanceof JsonResponse) {
-            return $product;
+        if ( ! $product) {
+            Log::info("Product not found with id = $id");
+
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
         Log::info('Show product with Id = ' . $id);
@@ -90,10 +91,12 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $product = $this->validateFindProduct($id);
+        $product = Product::find($id);
 
-        if ($product instanceof JsonResponse) {
-            return $product;
+        if ( ! $product) {
+            Log::info("Product not found with id = $id");
+
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
         $validator = Validator::make($request->all(), [
@@ -123,29 +126,17 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        $product = $this->validateFindProduct($id);
+        $product = Product::find($id);
 
-        if ($product instanceof JsonResponse) {
-            return $product;
+        if ( ! $product) {
+            Log::info("Product not found with id = $id");
+
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
         $product->delete();
         Log::info("Deleted product successfully with productID = $id");
 
         return new ProductResource($product);
-    }
-
-    // validate find product
-    private function validateFindProduct($id)
-    {
-        try {
-            $product = Product::findOrFail($id);
-        } catch (\Exception $exception) {
-            Log::info("Product not found with id = $id");
-
-            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        return $product;
     }
 }
