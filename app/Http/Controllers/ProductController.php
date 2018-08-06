@@ -4,10 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ProductResource;
 use App\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Validator;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
+    const PAGINATE = 10;
+
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +21,9 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $product = Product::paginate(10);
+        Log::info('List ' . self::PAGINATE . ' products');
+
+        $product = Product::paginate(self::PAGINATE);
 
         return ProductResource::collection($product);
     }
@@ -29,11 +37,25 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'title'       => 'required|max:100',
+            'description' => 'required|max:200',
+            'price'       => 'required|regex:/^\d*(\.\d{1,2})?$/'
+        ]);
+
+        if ( ! $validator->passes()) {
+            Log::info('Add product validation failed: ' . json_encode($validator->errors()->all()));
+
+            return response()->json(['message' => $validator->errors()->all()], Response::HTTP_BAD_REQUEST);
+        }
+
         $product = Product::create([
             'title'       => $request->title,
             'description' => $request->description,
             'price'       => $request->price
         ]);
+
+        Log::info('Saved product successfully with productID = ' . $product->id);
 
         return new ProductResource($product);
     }
@@ -47,7 +69,13 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::findOrFail($id);
+        $product = $this->validateFindProduct($id);
+
+        if ($product instanceof JsonResponse) {
+            return $product;
+        }
+
+        Log::info('Show product with Id = ' . $id);
 
         return new ProductResource($product);
     }
@@ -62,8 +90,26 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $product = Product::findOrFail($id);
+        $product = $this->validateFindProduct($id);
+
+        if ($product instanceof JsonResponse) {
+            return $product;
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title'       => 'max:100',
+            'description' => 'max:200',
+            'price'       => 'regex:/^\d*(\.\d{1,2})?$/'
+        ]);
+
+        if ( ! $validator->passes()) {
+            Log::info('Update product validation failed: ' . json_encode($validator->errors()->all()));
+
+            return response()->json(['message' => $validator->errors()->all()], Response::HTTP_BAD_REQUEST);
+        }
+
         $product->update($request->only(['title', 'description', 'price']));
+        Log::info("Updated product successfully with productID = $id");
 
         return new ProductResource($product);
     }
@@ -77,10 +123,29 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
+        $product = $this->validateFindProduct($id);
 
-        if ($product->delete()) {
-            return new ProductResource($product);
+        if ($product instanceof JsonResponse) {
+            return $product;
         }
+
+        $product->delete();
+        Log::info("Deleted product successfully with productID = $id");
+
+        return new ProductResource($product);
+    }
+
+    // validate find product
+    private function validateFindProduct($id)
+    {
+        try {
+            $product = Product::findOrFail($id);
+        } catch (\Exception $exception) {
+            Log::info("Product not found with id = $id");
+
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $product;
     }
 }
