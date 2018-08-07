@@ -45,7 +45,8 @@ class ProductController extends Controller
         if ( ! $validator->passes()) {
             Log::info('Add product validation failed: ' . json_encode($validator->errors()->all()));
 
-            return response()->json(['message' => $validator->errors()->all()], Response::HTTP_BAD_REQUEST);
+            return response()->json(['message' => $validator->errors()->all()],
+                Response::HTTP_BAD_REQUEST)->withCallback($request->input('callback'));
         }
 
         $product = Product::create([
@@ -66,14 +67,15 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $product = Product::find($id);
 
         if ( ! $product) {
             Log::info("Product not found with id = $id");
 
-            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+            return response()->json(['message' => 'Product not found'],
+                Response::HTTP_NOT_FOUND)->withCallback($request->input('callback'));
         }
 
         Log::info('Show product with Id = ' . $id);
@@ -100,7 +102,8 @@ class ProductController extends Controller
         if ( ! $validator->passes()) {
             Log::info('Update product validation failed: ' . json_encode($validator->errors()->all()));
 
-            return response()->json(['message' => $validator->errors()->all()], Response::HTTP_BAD_REQUEST);
+            return response()->json(['message' => $validator->errors()->all()],
+                Response::HTTP_BAD_REQUEST)->withCallback($request->input('callback'));
         }
 
         $product = Product::find($id);
@@ -108,7 +111,8 @@ class ProductController extends Controller
         if ( ! $product) {
             Log::info("Product not found with id = $id");
 
-            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+            return response()->json(['message' => 'Product not found'],
+                Response::HTTP_NOT_FOUND)->withCallback($request->input('callback'));
         }
 
         $product->update($request->only(['name', 'description', 'price']));
@@ -124,19 +128,21 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $product = Product::find($id);
 
         if ( ! $product) {
             Log::info("Product not found with id = $id");
 
-            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+            return response()->json(['message' => 'Product not found'],
+                Response::HTTP_NOT_FOUND)->withCallback($request->input('callback'));
         }
 
         $product->delete();
         Log::info("Product deleted successfully with productID = $id");
 
-        return response()->json(['message' => "Product deleted successfully"], Response::HTTP_OK);
+        return response()->json(['message' => "Product deleted successfully"],
+            Response::HTTP_OK)->withCallback($request->input('callback'));
     }
 }
