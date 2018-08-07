@@ -14,6 +14,7 @@ class ProductTest extends TestCase
      */
     public function testStoreProduct($input, $output)
     {
+        // check the case not validate when create product
         $response = $this->json('POST', '/api/product', $input);
 
         $response->assertStatus(400)
@@ -28,12 +29,14 @@ class ProductTest extends TestCase
      */
     public function testUpdateProduct($input, $output)
     {
+        // check the case not validate when update product
         $response = $this->json('PUT', '/api/product/1', $input);
 
         $response->assertStatus(400)
                  ->assertExactJson($output);
     }
 
+    // check the case not validate when create product
     public function dataStoreProvider()
     {
         return [
@@ -114,6 +117,7 @@ class ProductTest extends TestCase
         ];
     }
 
+    // check the case not validate when update product
     public function dataUpdateProvider()
     {
         return [
