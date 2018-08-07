@@ -54,7 +54,7 @@ class ProductController extends Controller
             'price'       => $request->price
         ]);
 
-        Log::info('Saved product successfully with productID = ' . $product->id);
+        Log::info('Product saved successfully with productID = ' . $product->id);
 
         return new ProductResource($product);
     }
@@ -91,18 +91,10 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $product = Product::find($id);
-
-        if ( ! $product) {
-            Log::info("Product not found with id = $id");
-
-            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
-        }
-
         $validator = Validator::make($request->all(), [
-            'name'        => 'max:50',
-            'description' => 'max:200',
-            'price'       => 'regex:/^\d*(\.\d{1,2})?$/'
+            'name'        => 'required_without_all:description,price|max:50',
+            'description' => 'required_without_all:name,price|max:200',
+            'price'       => 'required_without_all:name,description|regex:/^\d*(\.\d{1,2})?$/'
         ]);
 
         if ( ! $validator->passes()) {
@@ -111,8 +103,16 @@ class ProductController extends Controller
             return response()->json(['message' => $validator->errors()->all()], Response::HTTP_BAD_REQUEST);
         }
 
+        $product = Product::find($id);
+
+        if ( ! $product) {
+            Log::info("Product not found with id = $id");
+
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+        }
+
         $product->update($request->only(['name', 'description', 'price']));
-        Log::info("Updated product successfully with productID = $id");
+        Log::info("Product updated successfully with productID = $id");
 
         return new ProductResource($product);
     }
@@ -135,7 +135,7 @@ class ProductController extends Controller
         }
 
         $product->delete();
-        Log::info("Deleted product successfully with productID = $id");
+        Log::info("Product deleted successfully with productID = $id");
 
         return new ProductResource($product);
     }

@@ -12,9 +12,23 @@ class ProductTest extends TestCase
      * @throws \Exception
      * @throws \PHPUnit\Framework\ExpectationFailedException
      */
-    public function testStoreTest($input, $output)
+    public function testStoreProduct($input, $output)
     {
         $response = $this->json('POST', '/api/product', $input);
+
+        $response->assertStatus(400)
+                 ->assertExactJson($output);
+    }
+
+    /**
+     * @dataProvider dataUpdateProvider
+     *
+     * @throws \Exception
+     * @throws \PHPUnit\Framework\ExpectationFailedException
+     */
+    public function testUpdateProduct($input, $output)
+    {
+        $response = $this->json('PUT', '/api/product/1', $input);
 
         $response->assertStatus(400)
                  ->assertExactJson($output);
@@ -86,7 +100,7 @@ class ProductTest extends TestCase
                     'message' => ['The name may not be greater than 50 characters.']
                 ]
             ],
-            // test #6
+            // test #7
             [
                 'input'  => [
                     'name'        => 'namename',
@@ -95,6 +109,67 @@ class ProductTest extends TestCase
                 ],
                 'output' => [
                     'message' => ['The description may not be greater than 200 characters.']
+                ]
+            ],
+        ];
+    }
+
+    public function dataUpdateProvider()
+    {
+        return [
+            // test #1
+            [
+                'input'  => [
+                    'name'        => 'name',
+                    'description' => 'description',
+                    'price'       => -1
+                ],
+                'output' => [
+                    'message' => ['The price format is invalid.']
+                ]
+            ],
+            // test #2
+            [
+                'input'  => [
+                    'name'        => 'name',
+                    'description' => 'description',
+                    'price'       => 12.045
+                ],
+                'output' => [
+                    'message' => ['The price format is invalid.']
+                ]
+            ],
+            // test #3
+            [
+                'input'  => [
+                    'name'        => 'namenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamenamename',
+                    'description' => 'description',
+                    'price'       => 12
+                ],
+                'output' => [
+                    'message' => ['The name may not be greater than 50 characters.']
+                ]
+            ],
+            // test #4
+            [
+                'input'  => [
+                    'name'        => 'namename',
+                    'description' => 'descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription',
+                    'price'       => 12
+                ],
+                'output' => [
+                    'message' => ['The description may not be greater than 200 characters.']
+                ]
+            ],
+            // test #5
+            [
+                'input'  => [],
+                'output' => [
+                    'message' => [
+                        'The name field is required when none of description / price are present.',
+                        'The description field is required when none of name / price are present.',
+                        'The price field is required when none of name / description are present.'
+                    ]
                 ]
             ],
         ];
