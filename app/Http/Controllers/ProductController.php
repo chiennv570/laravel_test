@@ -137,6 +137,6 @@ class ProductController extends Controller
         $product->delete();
         Log::info("Product deleted successfully with productID = $id");
 
-        return new ProductResource($product);
+        return response()->json(['message' => "Product deleted successfully"], Response::HTTP_OK);
     }
 }
