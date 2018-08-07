@@ -18,13 +18,14 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         Log::info('List ' . self::PAGINATE . ' products');
 
         $product = Product::paginate(self::PAGINATE);
 
-        return ProductResource::collection($product);
+        return response()->json(ProductResource::collection($product),
+            Response::HTTP_OK)->withCallback($request->input('callback'));
     }
 
     /**
@@ -57,7 +58,8 @@ class ProductController extends Controller
 
         Log::info('Product saved successfully with productID = ' . $product->id);
 
-        return new ProductResource($product);
+        return response()->json(new ProductResource($product),
+            Response::HTTP_OK)->withCallback($request->input('callback'));
     }
 
     /**
@@ -80,7 +82,8 @@ class ProductController extends Controller
 
         Log::info('Show product with Id = ' . $id);
 
-        return new ProductResource($product);
+        return response()->json(new ProductResource($product),
+            Response::HTTP_OK)->withCallback($request->input('callback'));
     }
 
     /**
@@ -118,7 +121,8 @@ class ProductController extends Controller
         $product->update($request->only(['name', 'description', 'price']));
         Log::info("Product updated successfully with productID = $id");
 
-        return new ProductResource($product);
+        return response()->json(new ProductResource($product),
+            Response::HTTP_OK)->withCallback($request->input('callback'));
     }
 
     /**
