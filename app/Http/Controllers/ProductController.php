@@ -37,7 +37,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title'       => 'required|max:100',
+            'name'        => 'required|max:50',
             'description' => 'required|max:200',
             'price'       => 'required|regex:/^\d*(\.\d{1,2})?$/'
         ]);
@@ -49,7 +49,7 @@ class ProductController extends Controller
         }
 
         $product = Product::create([
-            'title'       => $request->title,
+            'name'        => $request->name,
             'description' => $request->description,
             'price'       => $request->price
         ]);
@@ -100,7 +100,7 @@ class ProductController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'title'       => 'max:100',
+            'name'        => 'max:50',
             'description' => 'max:200',
             'price'       => 'regex:/^\d*(\.\d{1,2})?$/'
         ]);
@@ -111,7 +111,7 @@ class ProductController extends Controller
             return response()->json(['message' => $validator->errors()->all()], Response::HTTP_BAD_REQUEST);
         }
 
-        $product->update($request->only(['title', 'description', 'price']));
+        $product->update($request->only(['name', 'description', 'price']));
         Log::info("Updated product successfully with productID = $id");
 
         return new ProductResource($product);
